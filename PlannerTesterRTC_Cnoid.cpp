@@ -59,6 +59,39 @@ PlannerTesterRTC_Cnoid::~PlannerTesterRTC_Cnoid()
 
 
 
+bool PlannerTesterRTC_Cnoid::detectObject(const std::string& name, std::vector<double>& out) {
+
+  if (m_objectDetectorPort.get_connector_profiles()->length() > 0) {
+    Manipulation::ObjectIdentifier objectID;
+    objectID.name = CORBA::string_dup(name.c_str());
+    Manipulation::ObjectInfo_var objInfo;
+    Manipulation::ReturnValue_var retval = m_objectDetectionService->detectObject(objectID, objInfo);
+    std::cout << "detectObject: " << (const char*)retval->message << std::endl;
+    if (retval->id == Manipulation::OK) {
+      out.push_back(objInfo->pose.position.x);
+      out.push_back(objInfo->pose.position.y);
+      out.push_back(objInfo->pose.position.z);
+      out.push_back(objInfo->pose.orientation.r);
+      out.push_back(objInfo->pose.orientation.p);
+      out.push_back(objInfo->pose.orientation.y);
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+    std::cout << "No connection" << std::endl;
+    std::cout << "- Dummy Data is output." << std::endl;
+    out.push_back(0);
+    out.push_back(0);
+    out.push_back(0.5);
+    out.push_back(0);
+    out.push_back(0);
+    out.push_back(0);
+    return true;
+  }
+  return false;
+}
+
 RTC::ReturnCode_t PlannerTesterRTC_Cnoid::onInitialize()
 {
   // Registration: InPort/OutPort/Service

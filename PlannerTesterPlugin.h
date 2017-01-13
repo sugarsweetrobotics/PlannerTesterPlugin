@@ -6,7 +6,7 @@
 
 #include <cnoid/IdPair>
 #include <cnoid/Plugin>
-
+#include <src/Base/TextEdit.h>
 #include <cnoid/CollisionDetector>
 
 #include <map>
@@ -53,9 +53,11 @@ public:
 
 
   void onTest();
+  void onClickDetectObject();
 
 
   cnoid::CrossMarkerPtr cmMarker;
+  cnoid::PlainTextEdit* textEdit;
 };
 
 

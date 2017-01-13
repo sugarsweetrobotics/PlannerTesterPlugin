@@ -7,6 +7,7 @@
 #include <cnoid/BodyItem>
 #include <cnoid/WorldItem>
 #include <cnoid/ToolBar>
+
 #include <cnoid/OpenRTMUtil>
 #include <cnoid/MessageView>
 #include <boost/bind.hpp>
@@ -30,9 +31,16 @@ PlannerTesterPlugin::PlannerTesterPlugin() : cnoid::Plugin("PlannerTester") {
  */
 bool PlannerTesterPlugin::initialize() {
   cnoid::ToolBar* bar = new cnoid::ToolBar("PlannerTester");
-  bar->addButton("PlannerTest")->sigClicked().connect(boost::bind(&PlannerTesterPlugin::onTest, this));
+  bar->addLabel("PlannerTesterPlugin");
+  bar->addSeparator();
+  //bar->addButton("Test")->sigClicked().connect(boost::bind(&PlannerTesterPlugin::onTest, this));
+  bar->addLabel("ObjectName:");  
+  textEdit = new cnoid::PlainTextEdit();
+  textEdit->setPlainText("object");
+  textEdit->setFixedHeight(40);
+  bar->addWidget(textEdit);
+  bar->addButton("DetectObject")->sigClicked().connect(boost::bind(&PlannerTesterPlugin::onClickDetectObject, this));
   addToolBar(bar);
-
   RTC::Manager& rtcManager = RTC::Manager::instance();
   PlannerTesterRTC_CnoidInit(&rtcManager);
   const char* param = "PlannerTesterRTC_Cnoid?instance_name=PlannerTesterRTC_Cnoid&exec_cxt.periodic.type=PeriodicExecutionContext&exec_cxt.periodic.rate=30";
@@ -41,24 +49,38 @@ bool PlannerTesterPlugin::initialize() {
 
   double radius = 1;
   cmMarker = new cnoid::CrossMarker(radius, cnoid::Vector3f(1.0f, 1.0f, 0.1f), 2.0);
-  cmMarker->setTranslation(cnoid::Vector3(0,0,0.5));
+
   
   return true;
 }
 
+void PlannerTesterPlugin::onClickDetectObject() {
+  std::cout << "Let's detect " << textEdit->toPlainText().toStdString() << std::endl;
+  std::vector<double> out;
+  if (plannerRTC->detectObject(textEdit->toPlainText().toStdString(), out)) {
+    std::cout << " - OK" << std::endl;
+    std::cout << " (";
+    for(int i = 0;i < 6;i++) {
+      std::cout << out[i] << ", ";
+    }
+    std::cout << ")" << std::endl;
+    cmMarker->setTranslation(cnoid::Vector3(out[0],out[1],out[2]));    
+    cnoid::ItemList<cnoid::BodyItem> items = cnoid::ItemTreeView::instance()->checkedItems<cnoid::BodyItem>();
+    if (items.size() == 0) {
+      std::cout << "Item not found." << std::endl;
+      return;
+    }
+    
+    
+    cnoid::BodyItemPtr b = items[0];
+    b->sceneBody()->addChildOnce(cmMarker, true);
+    
+  }
+}
 
 void PlannerTesterPlugin::onTest() {
 
   std::cout << "onTest" << std::endl;
-  cnoid::ItemList<cnoid::BodyItem> items = cnoid::ItemTreeView::instance()->checkedItems<cnoid::BodyItem>();
-  if (items.size() == 0) {
-    std::cout << "Item not found." << std::endl;
-    return;
-  }
-
-  
-  cnoid::BodyItemPtr b = items[0];
-  b->sceneBody()->addChild(cmMarker, true);
     
 }
 

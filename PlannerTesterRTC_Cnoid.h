@@ -286,7 +286,8 @@ class PlannerTesterRTC_Cnoid
   
   // </rtc-template>
 
-
+public:
+  bool detectObject(const std::string& name, std::vector<double>& out);
 };
 
 
