@@ -1,0 +1,9 @@
+*~
+*Stub.*
+*Skel.*
+idl
+cmake_install.cmake
+Makefile
+CMakeFiles
+*.hh
+*.cc
